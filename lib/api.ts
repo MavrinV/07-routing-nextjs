@@ -1,6 +1,6 @@
 import axios from "axios";
-import type { CreateNoteValues, Note } from "../types/note";
-import toast from "react-hot-toast";
+import type { CreateNoteValues, FetchNotesValues, Note } from "../types/note";
+import { toast } from "react-hot-toast";
 
 axios.defaults.baseURL = "https://notehub-public.goit.study/api";
 
@@ -8,26 +8,29 @@ interface ParamsTypes {
   page: number;
   perPage: number;
   search?: string;
-}
-
-interface FetchNotesValues {
-  notes: Note[];
-  totalPages: number;
+  tag?: string;
 }
 
 export async function fetchNotes(
   search: string,
-  page: number
+  page: number,
+  tag: string | undefined
 ): Promise<FetchNotesValues | undefined> {
   try {
     const perPage = 12;
     const params: ParamsTypes = {
+      tag,
       page,
       perPage,
     };
+
     if (search?.trim()) {
       params.search = search;
     }
+    if (tag?.trim()) {
+      params.tag = tag;
+    }
+
     const res = await axios.get<FetchNotesValues>("/notes", {
       params,
       headers: {

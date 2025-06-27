@@ -1,26 +1,29 @@
 "use client";
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import NoteList from "../../components/NoteList/NoteList";
-import Pagination from "../../components/Pagination/Pagination";
-import SearchBox from "../../components/SearchBox/SearchBox";
 import css from "./NotePage.module.css";
-import { fetchNotes } from "../../lib/api";
 import { useState } from "react";
 import { useDebounce } from "use-debounce";
-import NoteModal from "../../components/NoteModal/NoteModal";
-import Loader from "../loading";
 import ErrorMessage from "./error";
+import Loader from "@/app/loading";
+import { fetchNotes } from "@/lib/api";
+import SearchBox from "@/components/SearchBox/SearchBox";
+import Pagination from "@/components/Pagination/Pagination";
+import NoteList from "@/components/NoteList/NoteList";
+import NoteModal from "@/components/NoteModal/NoteModal";
+import { FetchNotesValues } from "@/types/note";
 
 interface NotesClientProps {
   initialQuery: string;
   initialPage: number;
-  initialData: Awaited<ReturnType<typeof fetchNotes>>;
+  initialTag?: string;
+  initialData: FetchNotesValues | undefined;
 }
 
 export default function NotesClient({
   initialQuery,
   initialPage,
+  initialTag,
   initialData,
 }: NotesClientProps) {
   const [query, setQuery] = useState<string>(initialQuery);
@@ -29,27 +32,22 @@ export default function NotesClient({
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   const { data, isLoading, isError, error, isSuccess } = useQuery({
-    queryKey: ["notes", debounceQuery, currentPage],
-    queryFn: () => fetchNotes(debounceQuery, currentPage),
+    queryKey: ["notes", debounceQuery, initialTag, currentPage],
+    queryFn: () => fetchNotes(debounceQuery, currentPage, initialTag),
     placeholderData: keepPreviousData,
     refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    initialData:
-      debounceQuery === initialQuery && currentPage === initialPage
-        ? initialData
-        : undefined,
+    initialData,
   });
-
-  const notesRequest = data?.notes ?? [];
-  const totalPage = data?.totalPages ?? 1;
 
   function toggleModal() {
     setIsModalOpen(!isModalOpen);
   }
-
   function closeModal() {
     setIsModalOpen(false);
   }
+
+  const notesRequest = data?.notes ?? [];
+  const totalPage = data?.totalPages ?? 1;
 
   function handleChange(newQuery: string) {
     setQuery(newQuery);
@@ -73,6 +71,7 @@ export default function NotesClient({
       </div>
 
       {isLoading && <Loader />}
+
       {isError && <ErrorMessage error={error} />}
       {isSuccess && <NoteList notes={notesRequest} />}
       {isModalOpen && <NoteModal onClose={closeModal} />}
