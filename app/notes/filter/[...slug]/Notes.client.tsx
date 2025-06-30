@@ -10,8 +10,9 @@ import { fetchNotes } from "@/lib/api";
 import SearchBox from "@/components/SearchBox/SearchBox";
 import Pagination from "@/components/Pagination/Pagination";
 import NoteList from "@/components/NoteList/NoteList";
-import NoteModal from "@/components/NoteModal/NoteModal";
+import Modal from "@/components/Modal/Modal";
 import { FetchNotesValues } from "@/types/note";
+import NoteForm from "@/components/NoteForm/NoteForm";
 
 interface NotesClientProps {
   initialQuery: string;
@@ -74,7 +75,11 @@ export default function NotesClient({
 
       {isError && <ErrorMessage error={error} />}
       {isSuccess && <NoteList notes={notesRequest} />}
-      {isModalOpen && <NoteModal onClose={closeModal} />}
+      {isModalOpen && (
+        <Modal onClose={closeModal}>
+          <NoteForm onClose={closeModal} />
+        </Modal>
+      )}
     </div>
   );
 }
